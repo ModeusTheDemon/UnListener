@@ -1,0 +1,198 @@
+﻿<Window x:Class="project.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:project"
+        Width="500" Height="600" 
+        ResizeMode="CanResize"
+        MinWidth="500" MinHeight="500"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
+    <Window.Resources>
+        <Style x:Key="SliderLineButton" TargetType="RepeatButton">
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="{TemplateBinding Background}" 
+                            CornerRadius="2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Foreground" Value="#FFF"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="border" 
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="20"
+                                    Opacity="0.6"/>
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3F3F3F"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="Slider">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderLineButton}" 
+                      Background="White"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderLineButton}" 
+                      Background="#505050"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Width="12" Height="12">
+                                        <Thumb.Template>
+                                            <ControlTemplate>
+                                                <Ellipse Fill="White" 
+                             Stroke="#505050"
+                             StrokeThickness="2"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Border Background="#1A1A1A" CornerRadius="20" Grid.ColumnSpan="2">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20"
+                                   Color="Black"
+                                   Opacity="0.5"/>
+            </Border.Effect>
+        </Border>
+
+
+        <Grid Margin="20,20,20,20" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="&#xE738;" Margin="5" Padding="10" ToolTip="Minimize" Click="MinimizeButton"/>
+                <Button Content="&#xE739;" Margin="5" Padding="10" ToolTip="Maximize" Click="ResizeButton"/>
+                <Button Content="&#xE8BB;" Margin="5" Padding="10" ToolTip="Close" Click="CloseButton"/>
+            </StackPanel>
+
+            <Grid Grid.Row="0" 
+              Background="Transparent"
+              PreviewMouseLeftButtonDown="DragAndMove" Margin="0,0,90,0">
+            </Grid>
+
+            <!-- Album Art -->
+            <Grid Grid.Row="1" VerticalAlignment="Center">
+                <Ellipse x:Name="AlbumArtEllipse" 
+                     Width="400" 
+                     Height="400">
+                    <Ellipse.Fill>
+                        <ImageBrush x:Name="AlbumArtBrush" 
+                                    Stretch="UniformToFill" 
+                                    AlignmentX="Center"
+                                    AlignmentY="Center"/>
+                    </Ellipse.Fill>
+                    <Ellipse.Effect>
+                        <DropShadowEffect BlurRadius="20" 
+                        Color="Black"
+                        Opacity="0.5"/>
+                    </Ellipse.Effect>
+                </Ellipse>
+            </Grid>
+
+            <!-- Controls -->
+            <Grid Grid.Row="2" Margin="0 20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Song Info -->
+                <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                    <TextBlock Name="SongName"
+                               Text="Music Name" 
+                               Foreground="White"
+                               FontSize="24"
+                               FontWeight="Bold"/>
+                    <TextBlock Name="ArtistName"
+                               Text="Artist" 
+                               Foreground="#A0A0A0"
+                               FontSize="18"
+                               Margin="0 5 0 20"/>
+                </StackPanel>
+
+                <!-- Progress Bar -->
+                <StackPanel Grid.Row="1">
+                    <Slider Name="SliderTimeCurrent" Minimum="0" Maximum="100" Value="0"/>
+                    <Grid Margin="0 5">
+                        <TextBlock Name="SongTimeCurrent" Text="0:00" Foreground="#A0A0A0"/>
+                        <TextBlock Name="SongTimeLenght" Text="10:00" Foreground="#A0A0A0" HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Volume Bar -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,0">
+                        <TextBlock Text="&#xE767;" 
+                   FontFamily="Segoe MDL2 Assets"
+                   Foreground="#A0A0A0"
+                   FontSize="16"
+                   VerticalAlignment="Center"
+                   Margin="0,0,5,0"/>
+                        <Slider x:Name="VolumeSlider" 
+                            Minimum="0" 
+                            Maximum="1" 
+                            Value="1"
+                            Width="80"
+                            VerticalAlignment="Center"
+                            ValueChanged="VolumeSlider_ValueChanged"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Player Controls -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="&#xE892;" FontSize="24" Margin="10" ToolTip="Shuffle"/>
+                    <Button Content="&#xE892;" FontSize="24" Margin="10" ToolTip="Previous"/>
+                    <Button Content="&#xE768;" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
+                    <Button Content="&#xE893;" FontSize="24" Margin="10" ToolTip="Next"/>
+                    <Button Content="&#xE8FD;" FontSize="24" Margin="10" ToolTip="Repeat"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

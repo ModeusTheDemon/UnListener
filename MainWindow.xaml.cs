@@ -7,12 +7,13 @@ using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Shapes;
 
@@ -25,24 +26,25 @@ namespace project
         private String[] _Songs; // список треков
         private MediaPlayer _Player = new MediaPlayer(); // Плеер
         private DispatcherTimer _timer; // таймер
+        private bool _isSliderDragging = false; // проверка движения ползунка
 
         public MainWindow()
         {
             InitializeComponent();
-            // InitializeTimer(); // TODO: таймер начинает работать с запозданием
             LoadDefaultAlbumArt(); // Загрузка  дефолтной обложки
             _CurrentSong = 0;
             _Songs = LoadSongs(); // загружаем все треки
-
-            // Подписываемся на событие открытия медиа
             _Player.MediaOpened += (s, e) =>
             {
                 InitializeTimer();
                 ParseSong();
-            };
 
-            _Player.Open(new Uri(_Songs[_CurrentSong])); // загружаем первый трек
-            
+                if (_Player.NaturalDuration.HasTimeSpan)
+                {
+                    SliderTimeCurrent.Maximum = _Player.NaturalDuration.TimeSpan.TotalSeconds;
+                }
+            };
+            _Player.Open(new Uri(_Songs[_CurrentSong]));
 
         }
 
@@ -53,27 +55,43 @@ namespace project
             _timer.Tick += Timer_Tick;
         }
 
-        private void Timer_Tick(object sender, EventArgs e) // Обработчик тика таймера
+        private void Timer_Tick(object sender, EventArgs e)
         {
             if (_Player.NaturalDuration.HasTimeSpan && _Player.NaturalDuration.TimeSpan.TotalSeconds > 0)
             {
                 TimeSpan currentPosition = _Player.Position;
                 SongTimeCurrent.Text = $"{(int)currentPosition.TotalMinutes}:{currentPosition.Seconds:D2}";
-            }
-        }
 
-        private void SetSliderTick(double SongLenght) // установка длины тика слайдера
-        {
-            var SliderTick = SongLenght / 100;
+                if (!_isSliderDragging)
+                {
+                    if (Math.Abs(SliderTimeCurrent.Value - currentPosition.TotalSeconds) > 0.5)
+                    {
+                        SliderTimeCurrent.Value = currentPosition.TotalSeconds;
+                    }
+                }
+            }
         }
 
         private string[] LoadSongs() // загрузка списка песен
         {
-            var fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content/Music/"); // директория с музыкой
+            var fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content\\Music");
+    
+        // Проверяем существование директории
+        if (!Directory.Exists(fullPath))
+        {
+            MessageBox.Show("Директория с музыкой не найдена!");
+            return new string[0];
+        }
 
-            var Songs = Directory.GetFiles(fullPath);
-
-            return Songs;
+        var songs = Directory.GetFiles(fullPath);
+    
+        // Проверяем, есть ли файлы
+        if (songs.Length == 0)
+        {
+            MessageBox.Show("В директории нет музыкальных файлов!");
+        }
+    
+        return songs;
         }
 
         private void LoadDefaultAlbumArt() // загрузка дефолтной обложки (если в метаданных трека нет своей)
@@ -99,8 +117,16 @@ namespace project
 
                 Dispatcher.Invoke(() =>
                 {
-                    SongName.Text = song.Tag.Title ?? "Unknown Track";
-                    ArtistName.Text = song.Tag.Performers[0].Split(',')[0] ?? "Unknown Artist";
+                    SongName.Text = song.Tag.Title ?? song.Name.Split('\\').Last();
+                    var Performers = song.Tag.Performers;
+                    if (Performers.Length == 0)
+                    {
+                        ArtistName.Text = "Unknown Artist";
+                    }
+                    else
+                    {
+                        ArtistName.Text = Performers[0].Split(',')[0];
+                    }
                     SongTimeLenght.Text = $"{(int)song.Properties.Duration.TotalMinutes}:{song.Properties.Duration.Seconds:D2}";
 
                     if (song.Tag.Pictures.Length > 0)
@@ -125,6 +151,7 @@ namespace project
 
         private void PlayButton(object sender, RoutedEventArgs e)
         {
+            if (_Songs.Length == 0) { MessageBox.Show("Нет песен для проигрывания!"); return; } // поимка ошибки
             if (!_IsPlaying) // трек не играет
             {
                 _Player.Play();
@@ -164,6 +191,27 @@ namespace project
         private void VolumeSlider_ValueChanged(object sender, RoutedEventArgs e)
         {
                 _Player.Volume = VolumeSlider.Value;
+        }
+
+        private void SliderTimeCurrent_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isSliderDragging)
+            {
+                _Player.Position = TimeSpan.FromSeconds(e.NewValue);
+            }
+        }
+
+        private void Slider_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _isSliderDragging = true;
+            _Player.Pause();
+        }
+
+        private void Slider_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            _isSliderDragging = false;
+            _Player.Position = TimeSpan.FromSeconds(SliderTimeCurrent.Value);
+            _Player.Play();
         }
     }
 }

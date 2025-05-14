@@ -6,7 +6,7 @@
         mc:Ignorable="d"
         Width="600" Height="600" 
         MinWidth="600" MinHeight="500"
-        ResizeMode="CanResize"
+        ResizeMode="NoResize"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -115,9 +115,9 @@
 
             <!-- Window Controls -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-5,0,5">
-                <Button Content="&#xE738;" Margin="3" ToolTip="Minimize" Click="MinimizeButton"/>
-                <Button Content="&#xE739;" Margin="3" ToolTip="Maximize" Click="ResizeButton"/>
-                <Button Content="&#xE8BB;" Margin="3" ToolTip="Close" Click="CloseButton"/>
+                <Button Content="&#xE738;" Margin="5" ToolTip="Minimize" Click="MinimizeButton"/>
+                <Button Content="&#xE739;" Margin="5" ToolTip="Maximize" Click="ResizeButton"/>
+                <Button Content="&#xE8BB;" Margin="5" ToolTip="Close" Click="CloseButton"/>
             </StackPanel>
 
             <!-- Drag Area -->
@@ -182,11 +182,12 @@
 
                     <!-- Playback Buttons -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Margin="10, 0, 150, 0">
-                        <Button Content="&#xE895;" FontSize="24" Margin="10" ToolTip="Repeat"/>
-                        <Button Content="&#xE892;" FontSize="24" Margin="10" ToolTip="Previous" Click="BackButton"/>
-                        <Button Content="&#xE768;" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
-                        <Button Content="&#xE893;" FontSize="24" Margin="10" ToolTip="Next" Click="SkipButton"/>
-                        <Button Content="&#xE8FD;" FontSize="24" Margin="10" ToolTip="List"/>
+                        <Button Content="" FontSize="24" Margin="10" ToolTip="Shuffle" Click="ShuffleButton"/>
+                        <Button Content="" FontSize="24" Margin="10" ToolTip="Previous" Click="BackButton"/>
+                        <Button Content="" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
+                        <Button Content="" FontSize="24" Margin="10" ToolTip="Next" Click="SkipButton"/>
+                        <Button Content="" FontSize="24" Margin="10" ToolTip="RepeatTrack"/>
+                        <Button Content="" FontSize="24" Margin="10" ToolTip="SongsList"/>
                     </StackPanel>
                 </Grid>
             </Grid>

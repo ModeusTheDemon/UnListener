@@ -24,7 +24,7 @@ namespace project
         private bool _IsPlaying = false; // текущее состояние трека
         private int _CurrentSong; // позиция текущего трека
         private String[] _Songs; // список треков
-        private MediaPlayer _Player = new MediaPlayer(); // Плеер
+        private readonly MediaPlayer _Player = new MediaPlayer(); // Плеер
         private DispatcherTimer _timer; // таймер
         private bool _isSliderDragging = false; // проверка взаимодействия пользователя с ползунком
         private Storyboard _rotationAnimation;
@@ -46,6 +46,10 @@ namespace project
                 {
                     SliderTimeCurrent.Maximum = _Player.NaturalDuration.TimeSpan.TotalSeconds;
                 }
+            };
+            _Player.MediaEnded += (s, e) =>
+            {
+                SkipButton(null, new RoutedEventArgs());
             };
             _Player.Open(new Uri(_Songs[_CurrentSong]));
 
@@ -152,6 +156,19 @@ namespace project
             });
         }
 
+        public void Shuffle<T>(IList<T> list)
+        {
+            Random rng = new Random();
+
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1); // от 0 до n включительно
+                (list[k], list[n]) = (list[n], list[k]); // swap
+            }
+        }
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///                                     Обработчики нажатий кнопок и прочего                                  ///
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,6 +248,24 @@ namespace project
             _IsPlaying = true;
         }
 
+        private void ShuffleButton(object sender, RoutedEventArgs e)
+        {
+            if (_IsPlaying)
+            {
+                PlayButton(null, new RoutedEventArgs());
+            }
+
+            Random rnd = new Random();
+
+            Shuffle(_Songs);
+            _CurrentSong = 0;
+            ParseSong();
+
+            _Player.Open(new Uri(_Songs[_CurrentSong]));
+
+            PlayButton(null, new RoutedEventArgs());
+        }
+
         private void DragAndMove(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
@@ -262,8 +297,7 @@ namespace project
             _Player.Position = TimeSpan.FromSeconds(SliderTimeCurrent.Value);
             if (!_IsPlaying)
             {
-                _IsPlaying = true;
-                _Player.Play();
+                PlayButton(null, new RoutedEventArgs());
             }
         }
 

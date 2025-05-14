@@ -20,42 +20,49 @@ namespace project
 {
     public partial class MainWindow : Window
     {
-        private bool _IsPlaying; // текущее состояние трека
+        private bool _IsPlaying = false; // текущее состояние трека
         private int _CurrentSong; // позиция текущего трека
         private String[] _Songs; // список треков
         private MediaPlayer _Player = new MediaPlayer(); // Плеер
-        private DispatcherTimer _timer;
+        private DispatcherTimer _timer; // таймер
 
         public MainWindow()
         {
             InitializeComponent();
-            InitializeTimer(); // TODO: таймер начинает работать с запозданием
-            LoadDefaultAlbumArt();
-            _IsPlaying = false;
+            // InitializeTimer(); // TODO: таймер начинает работать с запозданием
+            LoadDefaultAlbumArt(); // Загрузка  дефолтной обложки
             _CurrentSong = 0;
-            _Songs = LoadSongs();
-            _Player.Open(new Uri(_Songs[_CurrentSong])); // загружаем первый трек
-            ParseSong();
+            _Songs = LoadSongs(); // загружаем все треки
 
+            // Подписываемся на событие открытия медиа
+            _Player.MediaOpened += (s, e) =>
+            {
+                InitializeTimer();
+                ParseSong();
+            };
+
+            _Player.Open(new Uri(_Songs[_CurrentSong])); // загружаем первый трек
+            
 
         }
 
         private void InitializeTimer() // Инициализация таймера
         {
             _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Interval = TimeSpan.FromMilliseconds(200);
             _timer.Tick += Timer_Tick;
         }
 
         private void Timer_Tick(object sender, EventArgs e) // Обработчик тика таймера
         {
-            TimeSpan currentPosition = _Player.Position;
-
-            SongTimeCurrent.Text = $"{(int)currentPosition.TotalMinutes}:{currentPosition.Seconds:D2}";
-            var parsed_song_lenght = TimeSpan.Parse(SongTimeLenght.Text);
+            if (_Player.NaturalDuration.HasTimeSpan && _Player.NaturalDuration.TimeSpan.TotalSeconds > 0)
+            {
+                TimeSpan currentPosition = _Player.Position;
+                SongTimeCurrent.Text = $"{(int)currentPosition.TotalMinutes}:{currentPosition.Seconds:D2}";
+            }
         }
 
-        private void SetSliderTick(double SongLenght)
+        private void SetSliderTick(double SongLenght) // установка длины тика слайдера
         {
             var SliderTick = SongLenght / 100;
         }
@@ -84,35 +91,36 @@ namespace project
             AlbumArtBrush.Stretch = Stretch.UniformToFill;
         }
 
-        private void ParseSong() // парсит метаданные треков
+        private async void ParseSong() // парсит метаданные треков
         {
-            var song = TagLib.File.Create(_Songs[_CurrentSong]);
-
-            SongName.Text = song.Tag.Title; // установка имени трека
-            var performers_one_line = song.Tag.Performers[0];
-            var performers = performers_one_line.Split(',');
-            SongTimeLenght.Text = $"{(int)song.Properties.Duration.TotalMinutes}:{song.Properties.Duration.Seconds:D2}";
-            ArtistName.Text = performers[0]; // установка имени исполнителя
-
-            SetSliderTick(song.Properties.Duration.TotalSeconds); // установка тика слайдера
-
-            // установка обложки альбома
-            if (song.Tag.Pictures.Length == 0)
-                LoadDefaultAlbumArt();
-
-            IPicture picture = song.Tag.Pictures[0];
-
-            using (var memoryStream = new MemoryStream(picture.Data.Data))
+            await Task.Run(() =>
             {
-                BitmapImage bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.StreamSource = memoryStream;
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.EndInit();
+                var song = TagLib.File.Create(_Songs[_CurrentSong]);
 
-                AlbumArtBrush.ImageSource = bitmap;
-                AlbumArtBrush.Stretch = Stretch.UniformToFill;
-            }
+                Dispatcher.Invoke(() =>
+                {
+                    SongName.Text = song.Tag.Title ?? "Unknown Track";
+                    ArtistName.Text = song.Tag.Performers[0].Split(',')[0] ?? "Unknown Artist";
+                    SongTimeLenght.Text = $"{(int)song.Properties.Duration.TotalMinutes}:{song.Properties.Duration.Seconds:D2}";
+
+                    if (song.Tag.Pictures.Length > 0)
+                    {
+                        using (var ms = new MemoryStream(song.Tag.Pictures[0].Data.Data))
+                        {
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.StreamSource = ms;
+                            bitmap.EndInit();
+                            AlbumArtBrush.ImageSource = bitmap;
+                        }
+                    }
+                    else
+                    {
+                        LoadDefaultAlbumArt();
+                    }
+                });
+            });
         }
 
         private void PlayButton(object sender, RoutedEventArgs e)
@@ -121,6 +129,8 @@ namespace project
             {
                 _Player.Play();
                 _timer.Start();
+
+                Timer_Tick(null, EventArgs.Empty);
             } else // трек играет
             {
                 _Player.Pause();

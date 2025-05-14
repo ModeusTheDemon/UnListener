@@ -101,11 +101,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\backgrounds\default_bg.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Content\Music\последние_слова_feat_sonata_конец_солнечных_дней.m4a">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\Music\TV Girl,Taking What s Not Yours.mp3" />
+    <Content Include="Content\Music\последние_слова_feat_sonata_конец_солнечных_дней.m4a" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

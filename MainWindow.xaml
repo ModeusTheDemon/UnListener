@@ -104,7 +104,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-5,0,5">
                 <Button Content="&#xE738;" Margin="5" Padding="10" ToolTip="Minimize" Click="MinimizeButton"/>
                 <Button Content="&#xE739;" Margin="5" Padding="10" ToolTip="Maximize" Click="ResizeButton"/>
                 <Button Content="&#xE8BB;" Margin="5" Padding="10" ToolTip="Close" Click="CloseButton"/>
@@ -112,7 +112,7 @@
 
             <Grid Grid.Row="0" 
               Background="Transparent"
-              PreviewMouseLeftButtonDown="DragAndMove" Margin="0,0,90,0">
+              PreviewMouseLeftButtonDown="DragAndMove" Margin="-23,-23,90,0">
             </Grid>
 
             <!-- Album Art -->

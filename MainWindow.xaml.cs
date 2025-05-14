@@ -26,12 +26,15 @@ namespace project
         private String[] _Songs; // список треков
         private MediaPlayer _Player = new MediaPlayer(); // Плеер
         private DispatcherTimer _timer; // таймер
-        private bool _isSliderDragging = false; // проверка движения ползунка
+        private bool _isSliderDragging = false; // проверка взаимодействия пользователя с ползунком
+        private Storyboard _rotationAnimation;
+        private bool _isRotating;
 
         public MainWindow()
         {
             InitializeComponent();
             LoadDefaultAlbumArt(); // Загрузка  дефолтной обложки
+            _rotationAnimation = (Storyboard)FindResource("RotationAnimation"); // загрузка анимации 
             _CurrentSong = 0;
             _Songs = LoadSongs(); // загружаем все треки
             _Player.MediaOpened += (s, e) =>
@@ -55,7 +58,7 @@ namespace project
             _timer.Tick += Timer_Tick;
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object sender, EventArgs e) // Тик таймера 
         {
             if (_Player.NaturalDuration.HasTimeSpan && _Player.NaturalDuration.TimeSpan.TotalSeconds > 0)
             {
@@ -72,7 +75,7 @@ namespace project
             }
         }
 
-        private string[] LoadSongs() // загрузка списка песен
+        private string[] LoadSongs() // Загрузка списка песен
         {
             var fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content\\Music");
     
@@ -94,7 +97,7 @@ namespace project
         return songs;
         }
 
-        private void LoadDefaultAlbumArt() // загрузка дефолтной обложки (если в метаданных трека нет своей)
+        private void LoadDefaultAlbumArt() // Загрузка дефолтной обложки (если в метаданных трека нет своей)
         {
             var fullPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content/backgrounds/default_bg.jpg");
 
@@ -109,12 +112,12 @@ namespace project
             AlbumArtBrush.Stretch = Stretch.UniformToFill;
         }
 
-        private async void ParseSong() // парсит метаданные треков
+        private async void ParseSong() // Парсит метаданные треков
         {
             await Task.Run(() =>
             {
                 var song = TagLib.File.Create(_Songs[_CurrentSong]);
-
+                Dispatcher.Invoke(ResetRotation);
                 Dispatcher.Invoke(() =>
                 {
                     SongName.Text = song.Tag.Title ?? song.Name.Split('\\').Last();
@@ -149,19 +152,24 @@ namespace project
             });
         }
 
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///                                     Обработчики нажатий кнопок и прочего                                  ///
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         private void PlayButton(object sender, RoutedEventArgs e)
         {
             if (_Songs.Length == 0) { MessageBox.Show("Нет песен для проигрывания!"); return; } // поимка ошибки
+
             if (!_IsPlaying) // трек не играет
             {
                 _Player.Play();
                 _timer.Start();
-
+                StartRotation();
                 Timer_Tick(null, EventArgs.Empty);
             } else // трек играет
             {
                 _Player.Pause();
                 _timer.Stop();
+                StopRotation();
             }
             _IsPlaying = !_IsPlaying;
         }
@@ -181,6 +189,46 @@ namespace project
         private void MinimizeButton(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
+        }
+
+        private void SkipButton(object sender, RoutedEventArgs e)
+        {
+            if (_IsPlaying)
+            {
+                _IsPlaying = false;
+                _Player.Stop();
+            }
+            _CurrentSong = (_CurrentSong + 1) % _Songs.Length;
+
+            _Player.Open(new Uri(_Songs[_CurrentSong]));
+            ParseSong();
+            ResetRotation();
+            _Player.Play();
+            _IsPlaying = true;
+        }
+
+        private void BackButton(object sender, RoutedEventArgs e)
+        {
+            if (_IsPlaying)
+            {
+                _IsPlaying = false;
+                _Player.Stop();
+            }
+            var curSong = _CurrentSong - 1;
+            if (curSong < 0)
+            {
+                _CurrentSong = _Songs.Length - 1;
+            }
+            else
+            {
+                _CurrentSong--;
+            }
+
+            _Player.Open(new Uri(_Songs[_CurrentSong]));
+            ParseSong();
+            ResetRotation();
+            _Player.Play();
+            _IsPlaying = true;
         }
 
         private void DragAndMove(object sender, MouseButtonEventArgs e)
@@ -204,6 +252,7 @@ namespace project
         private void Slider_MouseDown(object sender, MouseButtonEventArgs e)
         {
             _isSliderDragging = true;
+            _IsPlaying = false;
             _Player.Pause();
         }
 
@@ -211,7 +260,35 @@ namespace project
         {
             _isSliderDragging = false;
             _Player.Position = TimeSpan.FromSeconds(SliderTimeCurrent.Value);
-            _Player.Play();
+            if (!_IsPlaying)
+            {
+                _IsPlaying = true;
+                _Player.Play();
+            }
+        }
+
+        private void StartRotation()
+        {
+            if (!_isRotating)
+            {
+                _rotationAnimation.Begin(this, true);
+                _isRotating = true;
+            }
+        }
+
+        private void StopRotation()
+        {
+            if (_isRotating)
+            {
+                _rotationAnimation.Pause(this);
+                _isRotating = false;
+            }
+        }
+
+        private void ResetRotation()
+        {
+            _rotationAnimation.SeekAlignedToLastTick(TimeSpan.Zero, TimeSeekOrigin.BeginTime);
+            AlbumArtRotation.Angle = 0;
         }
     }
 }

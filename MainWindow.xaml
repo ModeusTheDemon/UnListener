@@ -3,32 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:project"
         mc:Ignorable="d"
-        Width="500" Height="600" 
+        Width="600" Height="600" 
+        MinWidth="600" MinHeight="500"
         ResizeMode="CanResize"
-        MinWidth="500" MinHeight="500"
         WindowStyle="None"
         AllowsTransparency="True"
-        Background="Transparent">
-    
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen">
+
     <Window.Resources>
-        <Style x:Key="SliderLineButton" TargetType="RepeatButton">
-            <Setter Property="Height" Value="4"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="0,0,0,5"/>
-            <Setter Property="Focusable" Value="False"/>
-            <Setter Property="IsTabStop" Value="False"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RepeatButton">
-                        <Border Background="{TemplateBinding Background}" 
-                                CornerRadius="2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        
+        <!-- Button Style -->
         <Style TargetType="Button">
             <Setter Property="Foreground" Value="#FFF"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -40,12 +25,8 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Grid>
-                            <Border x:Name="border" 
-                                    Background="{TemplateBinding Background}"
-                                    CornerRadius="20"
-                                    Opacity="0.6"/>
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
+                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="20" Opacity="0.6"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -56,7 +37,39 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
+
+        <!-- TextBlock Style -->
+        <Style TargetType="TextBlock" x:Key="TimeText">
+            <Setter Property="Foreground" Value="#A0A0A0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Animation -->
+        <Storyboard x:Key="RotationAnimation" SpeedRatio="2">
+            <DoubleAnimation Storyboard.TargetName="AlbumArtRotation"
+                             Storyboard.TargetProperty="Angle"
+                             From="0" To="360" 
+                             Duration="0:0:20"
+                             RepeatBehavior="Forever"/>
+        </Storyboard>
+
+        <!-- Slider Line Button -->
+        <Style x:Key="SliderLineButton" TargetType="RepeatButton">
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Slider Style -->
         <Style TargetType="Slider">
             <Setter Property="Template">
                 <Setter.Value>
@@ -64,20 +77,16 @@
                         <Grid>
                             <Track x:Name="PART_Track">
                                 <Track.DecreaseRepeatButton>
-                                    <RepeatButton Style="{StaticResource SliderLineButton}" 
-                                                  Background="White"/>
+                                    <RepeatButton Style="{StaticResource SliderLineButton}" Background="White"/>
                                 </Track.DecreaseRepeatButton>
                                 <Track.IncreaseRepeatButton>
-                                    <RepeatButton Style="{StaticResource SliderLineButton}" 
-                                                  Background="#505050"/>
+                                    <RepeatButton Style="{StaticResource SliderLineButton}" Background="#505050"/>
                                 </Track.IncreaseRepeatButton>
                                 <Track.Thumb>
                                     <Thumb Width="12" Height="12">
                                         <Thumb.Template>
                                             <ControlTemplate>
-                                                <Ellipse Fill="White" 
-                                                         Stroke="#505050"
-                                                         StrokeThickness="2"/>
+                                                <Ellipse Fill="White" Stroke="#505050" StrokeThickness="2"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -93,9 +102,7 @@
     <Grid>
         <Border Background="#1A1A1A" CornerRadius="20">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20"
-                                  Color="Black"
-                                  Opacity="0.5"/>
+                <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5"/>
             </Border.Effect>
         </Border>
 
@@ -106,148 +113,82 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header Controls -->
-            <StackPanel Grid.Row="0" 
-                        Orientation="Horizontal" 
-                        HorizontalAlignment="Right" 
-                        Margin="0,-5,0,5">
-                <Button Content="&#xE738;" 
-                        Margin="5" 
-                        Padding="10" 
-                        ToolTip="Minimize" 
-                        Click="MinimizeButton"/>
-                <Button Content="&#xE739;" 
-                        Margin="5" 
-                        Padding="10" 
-                        ToolTip="Maximize" 
-                        Click="ResizeButton"/>
-                <Button Content="&#xE8BB;" 
-                        Margin="5" 
-                        Padding="10" 
-                        ToolTip="Close" 
-                        Click="CloseButton"/>
+            <!-- Window Controls -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-5,0,5">
+                <Button Content="&#xE738;" Margin="3" ToolTip="Minimize" Click="MinimizeButton"/>
+                <Button Content="&#xE739;" Margin="3" ToolTip="Maximize" Click="ResizeButton"/>
+                <Button Content="&#xE8BB;" Margin="3" ToolTip="Close" Click="CloseButton"/>
             </StackPanel>
 
             <!-- Drag Area -->
-            <Grid Grid.Row="0" 
-                  Background="Transparent"
-                  PreviewMouseLeftButtonDown="DragAndMove" 
-                  Margin="-23,-23,90,0"/>
+            <Grid Grid.Row="0" Background="Transparent" PreviewMouseLeftButtonDown="DragAndMove" Margin="-23,-23,90,0"/>
 
             <!-- Album Art -->
-            <Grid Grid.Row="1" 
-                  VerticalAlignment="Center">
-                <Ellipse x:Name="AlbumArtEllipse" 
-                         Width="400" 
-                         Height="400">
-                    <Ellipse.Fill>
-                        <ImageBrush x:Name="AlbumArtBrush" 
-                                    Stretch="UniformToFill" 
-                                    AlignmentX="Center"
-                                    AlignmentY="Center"/>
-                    </Ellipse.Fill>
-                    <Ellipse.Effect>
-                        <DropShadowEffect BlurRadius="20" 
-                                          Color="Black"
-                                          Opacity="0.5"/>
-                    </Ellipse.Effect>
-                </Ellipse>
+            <Grid Grid.Row="1" VerticalAlignment="Center" Margin="20">
+                <Viewbox Stretch="Uniform">
+                    <Ellipse x:Name="AlbumArtEllipse" Width="300" Height="300" RenderTransformOrigin="0.5,0.5">
+                        <Ellipse.RenderTransform>
+                            <RotateTransform x:Name="AlbumArtRotation"/>
+                        </Ellipse.RenderTransform>
+                        <Ellipse.Fill>
+                            <ImageBrush x:Name="AlbumArtBrush" Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center"/>
+                        </Ellipse.Fill>
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+                </Viewbox>
             </Grid>
 
             <!-- Player Controls -->
-            <Grid Grid.Row="2" 
-                  Margin="0 20">
+            <Grid Grid.Row="2" Margin="0 20">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Song Info -->
-                <StackPanel Grid.Row="0" 
-                            HorizontalAlignment="Center">
-                    <TextBlock x:Name="SongName"
-                               Text="Music Name" 
-                               Foreground="White"
-                               FontSize="24"
-                               FontWeight="Bold"/>
-                    <TextBlock x:Name="ArtistName"
-                               Text="Artist" 
-                               Foreground="#A0A0A0"
-                               FontSize="18"
-                               Margin="0 5 0 20"/>
+                <!-- Track Info -->
+                <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                    <TextBlock x:Name="SongName" Text="Music Name" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock x:Name="ArtistName" Text="Artist" Foreground="#A0A0A0" FontSize="18" Margin="0 5 0 20"/>
                 </StackPanel>
 
-                <!-- Progress Bar -->
+                <!-- Playback Progress -->
                 <StackPanel Grid.Row="1">
-                    <Slider x:Name="SliderTimeCurrent" 
-                            Minimum="0" 
-                            Value="0"
+                    <Slider x:Name="SliderTimeCurrent" Minimum="0" Value="0"
                             ValueChanged="SliderTimeCurrent_ValueChanged"
                             PreviewMouseLeftButtonDown="Slider_MouseDown"
                             PreviewMouseLeftButtonUp="Slider_MouseUp"/>
                     <Grid Margin="0 5">
-                        <TextBlock x:Name="SongTimeCurrent" 
-                                   Text="0:00" 
-                                   Foreground="#A0A0A0"/>
-                        <TextBlock x:Name="SongTimeLenght" 
-                                   Text="0:00" 
-                                   Foreground="#A0A0A0" 
-                                   HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="SongTimeCurrent" Style="{StaticResource TimeText}" Text="0:00"/>
+                        <TextBlock x:Name="SongTimeLenght" Style="{StaticResource TimeText}" Text="0:00" HorizontalAlignment="Right"/>
                     </Grid>
                 </StackPanel>
 
-                <!-- Volume Control -->
-                <StackPanel Grid.Row="2" 
-                            Orientation="Horizontal" 
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center">
-                    <StackPanel Orientation="Horizontal" 
-                                VerticalAlignment="Center" 
-                                Margin="0,0,20,0">
-                        <TextBlock Text="&#xE767;" 
-                                   FontFamily="Segoe MDL2 Assets"
-                                   Foreground="#A0A0A0"
-                                   FontSize="16"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,5,0"/>
-                        <Slider x:Name="VolumeSlider" 
-                                Minimum="0" 
-                                Maximum="1" 
-                                Value="0.05"
-                                Width="90"
-                                VerticalAlignment="Center"
-                                ValueChanged="VolumeSlider_ValueChanged"/>
-                    </StackPanel>
-                </StackPanel>
+                <!-- Volume and Playback Buttons -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Player Buttons -->
-                <StackPanel Grid.Row="2" 
-                            Orientation="Horizontal" 
-                            HorizontalAlignment="Center">
-                    <Button Content="&#xE892;" 
-                            FontSize="24" 
-                            Margin="10" 
-                            ToolTip="Shuffle"/>
-                    <Button Content="&#xE892;" 
-                            FontSize="24" 
-                            Margin="10" 
-                            ToolTip="Previous"/>
-                    <Button Content="&#xE768;" 
-                            FontSize="36" 
-                            Margin="10" 
-                            Padding="20" 
-                            ToolTip="Play" 
-                            Click="PlayButton"/>
-                    <Button Content="&#xE893;" 
-                            FontSize="24" 
-                            Margin="10" 
-                            ToolTip="Next"/>
-                    <Button Content="&#xE8FD;" 
-                            FontSize="24" 
-                            Margin="10" 
-                            ToolTip="Repeat"/>
-                </StackPanel>
+                    <!-- Volume -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                        <TextBlock Text="&#xE767;" VerticalAlignment="Center"  FontFamily="Segoe MDL2 Assets" Style="{StaticResource TimeText}"/>
+                        <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" Value="0.03" Margin="10"
+                                Width="90" VerticalAlignment="Center" ValueChanged="VolumeSlider_ValueChanged"/>
+                    </StackPanel>
+
+                    <!-- Playback Buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Margin="10, 0, 150, 0">
+                        <Button Content="&#xE895;" FontSize="24" Margin="10" ToolTip="Repeat"/>
+                        <Button Content="&#xE892;" FontSize="24" Margin="10" ToolTip="Previous" Click="BackButton"/>
+                        <Button Content="&#xE768;" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
+                        <Button Content="&#xE893;" FontSize="24" Margin="10" ToolTip="Next" Click="SkipButton"/>
+                        <Button Content="&#xE8FD;" FontSize="24" Margin="10" ToolTip="List"/>
+                    </StackPanel>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>

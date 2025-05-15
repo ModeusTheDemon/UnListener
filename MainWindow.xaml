@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Width="600" Height="600" 
-        MinWidth="600" MinHeight="500"
         ResizeMode="NoResize"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Name="Window">
 
     <Window.Resources>
         <!-- Button Style -->
@@ -100,97 +100,109 @@
     </Window.Resources>
 
     <Grid>
-        <Border Background="#1A1A1A" CornerRadius="20">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <!-- Основное содержимое -->
+            <ColumnDefinition Width="0" x:Name="RightPanelColumn"/>
+            <!-- Расширяемая панель -->
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column="0" Background="#1A1A1A" CornerRadius="20">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5"/>
+                <DropShadowEffect BlurRadius="15" Color="Black" Opacity="0.5"/>
             </Border.Effect>
-        </Border>
 
-        <Grid Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <!-- Window Controls -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-5,0,5">
-                <Button Content="&#xE738;" Margin="5" ToolTip="Minimize" Click="MinimizeButton"/>
-                <Button Content="&#xE739;" Margin="5" ToolTip="Maximize" Click="ResizeButton"/>
-                <Button Content="&#xE8BB;" Margin="5" ToolTip="Close" Click="CloseButton"/>
-            </StackPanel>
-
-            <!-- Drag Area -->
-            <Grid Grid.Row="0" Background="Transparent" PreviewMouseLeftButtonDown="DragAndMove" Margin="-23,-23,90,0"/>
-
-            <!-- Album Art -->
-            <Grid Grid.Row="1" VerticalAlignment="Center" Margin="20">
-                <Viewbox Stretch="Uniform">
-                    <Ellipse x:Name="AlbumArtEllipse" Width="300" Height="300" RenderTransformOrigin="0.5,0.5">
-                        <Ellipse.RenderTransform>
-                            <RotateTransform x:Name="AlbumArtRotation"/>
-                        </Ellipse.RenderTransform>
-                        <Ellipse.Fill>
-                            <ImageBrush x:Name="AlbumArtBrush" Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center"/>
-                        </Ellipse.Fill>
-                        <Ellipse.Effect>
-                            <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5"/>
-                        </Ellipse.Effect>
-                    </Ellipse>
-                </Viewbox>
-            </Grid>
-
-            <!-- Player Controls -->
-            <Grid Grid.Row="2" Margin="0 20">
+            <Grid Margin="20">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Track Info -->
-                <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-                    <TextBlock x:Name="SongName" Text="Music Name" Foreground="White" FontSize="24" FontWeight="Bold"/>
-                    <TextBlock x:Name="ArtistName" Text="Artist" Foreground="#A0A0A0" FontSize="18" Margin="0 5 0 20"/>
+                <!-- Window Controls -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,-5,0,5">
+                    <Button Content="&#xE738;" Margin="5" ToolTip="Minimize" Click="MinimizeButton"/>
+                    <Button Content="&#xE739;" Margin="5" ToolTip="Maximize" Click="ResizeButton"/>
+                    <Button Content="&#xE8BB;" Margin="5" ToolTip="Close" Click="CloseButton"/>
                 </StackPanel>
 
-                <!-- Playback Progress -->
-                <StackPanel Grid.Row="1">
-                    <Slider x:Name="SliderTimeCurrent" Minimum="0" Value="0"
+                <!-- Drag Area -->
+                <Grid Grid.Row="0" Background="Transparent" PreviewMouseLeftButtonDown="DragAndMove" Margin="-23,-23,90,0"/>
+
+                <!-- Album Art -->
+                <Grid Grid.Row="1" VerticalAlignment="Center" Margin="20">
+                    <Viewbox Stretch="Uniform">
+                        <Ellipse x:Name="AlbumArtEllipse" Width="300" Height="300" RenderTransformOrigin="0.5,0.5">
+                            <Ellipse.RenderTransform>
+                                <RotateTransform x:Name="AlbumArtRotation"/>
+                            </Ellipse.RenderTransform>
+                            <Ellipse.Fill>
+                                <ImageBrush x:Name="AlbumArtBrush" Stretch="UniformToFill" AlignmentX="Center" AlignmentY="Center"/>
+                            </Ellipse.Fill>
+                            <Ellipse.Effect>
+                                <DropShadowEffect BlurRadius="20" Color="Black" Opacity="0.5"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </Viewbox>
+                </Grid>
+
+                <!-- Player Controls -->
+                <Grid Grid.Row="2" Margin="0 20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Track Info -->
+                    <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+                        <TextBlock x:Name="SongName" Text="Music Name" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                        <TextBlock x:Name="ArtistName" Text="Artist" Foreground="#A0A0A0" FontSize="18" Margin="0 5 0 20"/>
+                    </StackPanel>
+
+                    <!-- Playback Progress -->
+                    <StackPanel Grid.Row="1">
+                        <Slider x:Name="SliderTimeCurrent" Minimum="0" Value="0"
                             ValueChanged="SliderTimeCurrent_ValueChanged"
                             PreviewMouseLeftButtonDown="Slider_MouseDown"
                             PreviewMouseLeftButtonUp="Slider_MouseUp"/>
-                    <Grid Margin="0 5">
-                        <TextBlock x:Name="SongTimeCurrent" Style="{StaticResource TimeText}" Text="0:00"/>
-                        <TextBlock x:Name="SongTimeLenght" Style="{StaticResource TimeText}" Text="0:00" HorizontalAlignment="Right"/>
-                    </Grid>
-                </StackPanel>
+                        <Grid Margin="0 5">
+                            <TextBlock x:Name="SongTimeCurrent" Style="{StaticResource TimeText}" Text="0:00"/>
+                            <TextBlock x:Name="SongTimeLenght" Style="{StaticResource TimeText}" Text="0:00" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
 
-                <!-- Volume and Playback Buttons -->
-                <Grid Grid.Row="2">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <!-- Volume and Playback Buttons -->
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                    <!-- Volume -->
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
-                        <TextBlock Text="&#xE767;" VerticalAlignment="Center"  FontFamily="Segoe MDL2 Assets" Style="{StaticResource TimeText}"/>
-                        <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" Value="0.03" Margin="10"
+                        <!-- Volume -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" >
+                            <TextBlock Text="&#xE767;" VerticalAlignment="Center"  FontFamily="Segoe MDL2 Assets" Style="{StaticResource TimeText}"/>
+                            <Slider x:Name="VolumeSlider" Minimum="0" Maximum="1" Value="0.03" Margin="10"
                                 Width="90" VerticalAlignment="Center" ValueChanged="VolumeSlider_ValueChanged"/>
-                    </StackPanel>
+                        </StackPanel>
 
-                    <!-- Playback Buttons -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Margin="10, 0, 150, 0">
-                        <Button Content="" FontSize="24" Margin="10" ToolTip="Shuffle" Click="ShuffleButton"/>
-                        <Button Content="" FontSize="24" Margin="10" ToolTip="Previous" Click="BackButton"/>
-                        <Button Content="" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
-                        <Button Content="" FontSize="24" Margin="10" ToolTip="Next" Click="SkipButton"/>
-                        <Button Content="" FontSize="24" Margin="10" ToolTip="RepeatTrack"/>
-                        <Button Content="" FontSize="24" Margin="10" ToolTip="SongsList"/>
-                    </StackPanel>
+                        <!-- Playback Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Margin="10, 0, 150, 0">
+                            <Button Content="" FontSize="24" Margin="10" ToolTip="Shuffle" Click="ShuffleButton"/>
+                            <Button Content="" FontSize="24" Margin="10" ToolTip="Previous" Click="BackButton"/>
+                            <Button Content="" FontSize="36" Margin="10" Padding="20" ToolTip="Play" Click="PlayButton"/>
+                            <Button Content="" FontSize="24" Margin="10" ToolTip="Next" Click="SkipButton"/>
+                            <Button Content="" FontSize="24" Margin="10" ToolTip="RepeatTrack" Click="RepeatButton" Name="RepButton"/>
+                            <Button Content="" FontSize="24" Margin="10" ToolTip="SongsList" Click="ListButton"/>
+                        </StackPanel>
+                    </Grid>
                 </Grid>
             </Grid>
-        </Grid>
+        </Border>
+
+        <Border x:Name="RightPanel" Grid.Column="1" Background="#1A1A1A" Opacity="0.95">
+            <ScrollViewer>
+                <StackPanel x:Name="SongListPanel" Margin="10"/>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Window>

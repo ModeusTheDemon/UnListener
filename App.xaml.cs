@@ -8,10 +8,14 @@ using System.Windows;
 
 namespace project
 {
-    /// <summary>
-    /// Логика взаимодействия для App.xaml
-    /// </summary>
     public partial class App : Application
     {
+        [STAThread]
+        public static void Main()
+        {
+            App app = new App();
+            app.InitializeComponent();
+            app.Run(new MainWindow());
+        }
     }
 }

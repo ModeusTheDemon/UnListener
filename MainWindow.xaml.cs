@@ -17,6 +17,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using System.Windows.Shapes;
 using System.Windows.Controls;
+using Microsoft.Win32;
 
 namespace project
 {
@@ -95,7 +96,7 @@ namespace project
 
         private void LoadDefaultAlbumArt()
         {
-            var path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content/backgrounds/default_bg.jpg");
+            var path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Content/Pictures/default_bg.jpg");
 
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -178,7 +179,18 @@ namespace project
 
         private void CloseButton(object sender, RoutedEventArgs e) => Close();
 
-        private void ResizeButton(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        private void ResizeButton(object sender, RoutedEventArgs e)
+        {
+            if (Window.WindowState == WindowState.Maximized)
+            {
+                Window.WindowState = WindowState.Normal;
+                Window.Width = 600;
+            }
+            else
+            {
+                Window.WindowState = WindowState.Maximized;
+            }
+        }
 
         private void MinimizeButton(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
@@ -227,6 +239,60 @@ namespace project
             }
 
             _IsSongListVisible = !_IsSongListVisible;
+        }
+
+        private void SettingsButton(object sender, RoutedEventArgs e)
+        {
+            if (cm != null)
+            {
+                cm.PlacementTarget = (UIElement)sender;
+                cm.IsOpen = true;
+            }
+        }
+
+        private void LoadSongButton(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Выберите трек для добавления",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
+                Filter = "Аудиофайлы|*.mp3;*.wav;*.flac;*.m4a", 
+                Multiselect = true
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string filename in openFileDialog.FileNames)
+                {
+                    _Songs = _Songs.Concat(new[] { filename }).ToArray();
+                    System.IO.File.Move(filename, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content/Music/", $"{filename.Split('/').Last()}"));
+                }
+
+                SongList();
+            }
+        }
+
+        private void DeleteSongButton(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(AppDomain.CurrentDomain.BaseDirectory + "Content\\Music\\");
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Выберите трек для удаления",
+                InitialDirectory = AppDomain.CurrentDomain.BaseDirectory + "Content\\Music\\",
+                Filter = "Аудиофайлы|*.mp3;*.wav;*.flac;*.m4a",
+                Multiselect = true
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (string filename in openFileDialog.FileNames)
+                {
+                    _Songs = _Songs.Where(x => x != filename).ToArray();
+                    System.IO.File.Delete(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content/Music/", $"{filename.Split('/').Last()}"));
+                }
+
+                SongList();
+            }
         }
 
         private void DragAndMove(object sender, MouseButtonEventArgs e) => DragMove();
@@ -298,6 +364,8 @@ namespace project
             _Player.Open(new Uri(_Songs[_CurrentSong]));
             ParseSong();
             ResetRotation();
+            _timer.Start();
+            Timer_Tick(null, EventArgs.Empty);
             _Player.Play();
             _IsPlaying = true;
             StartRotation();
@@ -309,26 +377,67 @@ namespace project
 
         private void ExpandRightPanel()
         {
-            Window.Width += 300;
-            var animation = new GridLengthAnimation
+            var storyboard = new Storyboard();
+
+            // Анимация для ширины окна
+            var windowAnimation = new DoubleAnimation
+            {
+                From = Window.ActualWidth,
+                To = Window.ActualWidth + 300,
+                Duration = TimeSpan.FromMilliseconds(300)
+            };
+
+            Storyboard.SetTarget(windowAnimation, Window);
+            Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
+
+            // Анимация для колонки
+            var columnAnimation = new GridLengthAnimation
             {
                 From = new GridLength(0),
                 To = new GridLength(300),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
-            RightPanelColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
+
+            Storyboard.SetTarget(columnAnimation, RightPanelColumn);
+            Storyboard.SetTargetProperty(columnAnimation, new PropertyPath(ColumnDefinition.WidthProperty));
+
+            storyboard.Children.Add(windowAnimation);
+            storyboard.Children.Add(columnAnimation);
+
+            storyboard.Begin();
         }
 
         private void CollapseRightPanel()
         {
-            var animation = new GridLengthAnimation
+            var storyboard = new Storyboard();
+
+            // Анимация для ширины окна
+            var windowAnimation = new DoubleAnimation
+            {
+                From = Window.ActualWidth,
+                To = Window.ActualWidth - 300,
+                Duration = TimeSpan.FromMilliseconds(300)
+            };
+
+            Storyboard.SetTarget(windowAnimation, Window);
+            Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
+
+            // Анимация для колонки
+            var columnAnimation = new GridLengthAnimation
             {
                 From = new GridLength(300),
                 To = new GridLength(0),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
-            RightPanelColumn.BeginAnimation(ColumnDefinition.WidthProperty, animation);
-            Window.Width -= 300;
+
+            Storyboard.SetTarget(columnAnimation, RightPanelColumn);
+            Storyboard.SetTargetProperty(columnAnimation,
+                new PropertyPath(ColumnDefinition.WidthProperty));
+
+            storyboard.Children.Add(windowAnimation);
+            storyboard.Children.Add(columnAnimation);
+
+            storyboard.Begin();
         }
 
         private void SongList()
@@ -398,17 +507,15 @@ namespace project
                 SongListPanel.Children.Add(songItem);
             }
         }
-
+        
     }
 
 
 
     public class GridLengthAnimation : AnimationTimeline
     {
-        public static readonly DependencyProperty FromProperty =
-            DependencyProperty.Register("From", typeof(GridLength), typeof(GridLengthAnimation));
-        public static readonly DependencyProperty ToProperty =
-            DependencyProperty.Register("To", typeof(GridLength), typeof(GridLengthAnimation));
+        public static readonly DependencyProperty FromProperty = DependencyProperty.Register("From", typeof(GridLength), typeof(GridLengthAnimation));
+        public static readonly DependencyProperty ToProperty   = DependencyProperty.Register("To",   typeof(GridLength), typeof(GridLengthAnimation));
 
         public GridLength From
         {
@@ -422,6 +529,7 @@ namespace project
             set => SetValue(ToProperty, value);
         }
 
+        // без перезаписи нижележещих функций работать не хочет
         public override Type TargetPropertyType => typeof(GridLength);
 
         public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)

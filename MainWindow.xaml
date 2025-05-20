@@ -10,7 +10,8 @@
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="CenterScreen"
-        Name="Window">
+        Name="Window"
+        Icon="Content/Pictures/icon.jpg">
 
     <Window.Resources>
         <!-- Button Style -->
@@ -107,9 +108,9 @@
             <!-- Расширяемая панель -->
         </Grid.ColumnDefinitions>
         <Border Grid.Column="0" Background="#1A1A1A" CornerRadius="20">
-            <Border.Effect>
+            <!--<Border.Effect>
                 <DropShadowEffect BlurRadius="15" Color="Black" Opacity="0.5"/>
-            </Border.Effect>
+            </Border.Effect> -->
 
             <Grid Margin="20">
                 <Grid.RowDefinitions>
@@ -194,6 +195,18 @@
                             <Button Content="" FontSize="24" Margin="10" ToolTip="RepeatTrack" Click="RepeatButton" Name="RepButton"/>
                             <Button Content="" FontSize="24" Margin="10" ToolTip="SongsList" Click="ListButton"/>
                         </StackPanel>
+
+                        <!-- Settings button -->
+                        <Button Content="" FontSize="24" Margin="0,0,20,0" 
+                        ToolTip="Settings" HorizontalAlignment="Right" Grid.Column="1"
+                                Click="SettingsButton">
+                            <Button.ContextMenu>
+                                <ContextMenu Name="cm" StaysOpen="true">
+                                    <MenuItem Header="Добавить трек" Click="LoadSongButton"/>
+                                    <MenuItem Header="Удалить трек" Click="DeleteSongButton"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
                     </Grid>
                 </Grid>
             </Grid>

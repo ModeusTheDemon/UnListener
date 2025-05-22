@@ -37,6 +37,7 @@ namespace project
         public MainWindow()
         {
             InitializeComponent();
+            SizeChanged += Window_SizeChanged;
             LoadDefaultAlbumArt();
             _rotationAnimation = (Storyboard)FindResource("RotationAnimation");
             _Songs = LoadSongs();
@@ -154,11 +155,7 @@ namespace project
 
         private void PlayButton(object sender, RoutedEventArgs e)
         {
-            if (_Songs.Length == 0)
-            {
-                MessageBox.Show("Нет песен для проигрывания!");
-                return;
-            }
+            CheckSongs();
 
             if (_IsPlaying)
             {
@@ -184,7 +181,8 @@ namespace project
             if (Window.WindowState == WindowState.Maximized)
             {
                 Window.WindowState = WindowState.Normal;
-                Window.Width = 600;
+                Window.Height = 600.0;
+                Window.Width = _IsSongListVisible ? 900.0 : 600.0;
             }
             else
             {
@@ -200,11 +198,13 @@ namespace project
 
         private void ShuffleButton(object sender, RoutedEventArgs e)
         {
+            CheckSongs();
             if (_IsPlaying)
                 PlayButton(null, new RoutedEventArgs());
 
             Shuffle(_Songs);
             _CurrentSong = 0;
+            SongList();
             PlayNewSong();
         }
 
@@ -265,7 +265,7 @@ namespace project
                 foreach (string filename in openFileDialog.FileNames)
                 {
                     _Songs = _Songs.Concat(new[] { filename }).ToArray();
-                    System.IO.File.Move(filename, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content/Music/", $"{filename.Split('/').Last()}"));
+                    System.IO.File.Copy(filename, System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content\\Music\\", $"{filename.Split('\\').Last()}"));
                 }
 
                 SongList();
@@ -274,7 +274,6 @@ namespace project
 
         private void DeleteSongButton(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(AppDomain.CurrentDomain.BaseDirectory + "Content\\Music\\");
             var openFileDialog = new OpenFileDialog
             {
                 Title = "Выберите трек для удаления",
@@ -288,7 +287,7 @@ namespace project
                 foreach (string filename in openFileDialog.FileNames)
                 {
                     _Songs = _Songs.Where(x => x != filename).ToArray();
-                    System.IO.File.Delete(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content/Music/", $"{filename.Split('/').Last()}"));
+                    System.IO.File.Delete(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "Content\\Music\\", $"{filename.Split('\\').Last()}"));
                 }
 
                 SongList();
@@ -321,6 +320,14 @@ namespace project
                 PlayButton(null, new RoutedEventArgs());
         }
 
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (Window.WindowState == WindowState.Normal && _IsSongListVisible)
+            {
+                Window.Width = 900.0;
+            }
+        }
+
         private void StartRotation()
         {
             if (!_isRotating)
@@ -347,12 +354,14 @@ namespace project
 
         private void NextSong()
         {
+            CheckSongs();
             _CurrentSong = (_CurrentSong + 1) % _Songs.Length;
             PlayNewSong();
         }
 
         private void PreviousSong()
         {
+            CheckSongs();
             _CurrentSong = (_CurrentSong - 1 + _Songs.Length) % _Songs.Length;
             PlayNewSong();
         }
@@ -369,6 +378,39 @@ namespace project
             _Player.Play();
             _IsPlaying = true;
             StartRotation();
+            UpdateSongListHighlight();
+        }
+
+        private void CheckSongs()
+        {
+            if (_Songs.Length == 0)
+            {
+                MessageBox.Show("в списке нет песен!\nВы можете добавить их через настройки ;)");
+                return;
+            }
+        }
+
+        private void UpdateSongListHighlight()
+        {
+            foreach (Border songItem in SongListPanel.Children)
+            {
+                int index = (int)songItem.Tag;
+                var grid = (Grid)songItem.Child;
+                var playBtn = (Button)grid.Children[1];
+
+                if (index == _CurrentSong)
+                {
+                    songItem.Background = new SolidColorBrush(Color.FromRgb(100, 100, 100));
+                    playBtn.Content = "";
+                    playBtn.Opacity = 1;
+                }
+                else
+                {
+                    songItem.Background = Brushes.Transparent;
+                    playBtn.Content = "";
+                    playBtn.Opacity = 0;
+                }
+            }
         }
 
         private void OnMediaEnded(object sender, EventArgs e) => SkipButton(null, new RoutedEventArgs());
@@ -379,29 +421,27 @@ namespace project
         {
             var storyboard = new Storyboard();
 
-            // Анимация для ширины окна
-            var windowAnimation = new DoubleAnimation
+            if (Window.WindowState != WindowState.Maximized)
             {
-                From = Window.ActualWidth,
-                To = Window.ActualWidth + 300,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
+                var windowAnimation = new DoubleAnimation
+                {
+                    From = Window.ActualWidth,
+                    To = Window.ActualWidth + 300,
+                    Duration = TimeSpan.FromMilliseconds(300)
+                };
+                Storyboard.SetTarget(windowAnimation, Window);
+                Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
+                storyboard.Children.Add(windowAnimation);
+            }
 
-            Storyboard.SetTarget(windowAnimation, Window);
-            Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
-
-            // Анимация для колонки
             var columnAnimation = new GridLengthAnimation
             {
                 From = new GridLength(0),
                 To = new GridLength(300),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
-
             Storyboard.SetTarget(columnAnimation, RightPanelColumn);
             Storyboard.SetTargetProperty(columnAnimation, new PropertyPath(ColumnDefinition.WidthProperty));
-
-            storyboard.Children.Add(windowAnimation);
             storyboard.Children.Add(columnAnimation);
 
             storyboard.Begin();
@@ -411,30 +451,27 @@ namespace project
         {
             var storyboard = new Storyboard();
 
-            // Анимация для ширины окна
-            var windowAnimation = new DoubleAnimation
+            if (Window.WindowState != WindowState.Maximized)
             {
-                From = Window.ActualWidth,
-                To = Window.ActualWidth - 300,
-                Duration = TimeSpan.FromMilliseconds(300)
-            };
+                var windowAnimation = new DoubleAnimation
+                {
+                    From = Window.ActualWidth,
+                    To = Window.ActualWidth - 300,
+                    Duration = TimeSpan.FromMilliseconds(300)
+                };
+                Storyboard.SetTarget(windowAnimation, Window);
+                Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
+                storyboard.Children.Add(windowAnimation);
+            }
 
-            Storyboard.SetTarget(windowAnimation, Window);
-            Storyboard.SetTargetProperty(windowAnimation, new PropertyPath(FrameworkElement.WidthProperty));
-
-            // Анимация для колонки
             var columnAnimation = new GridLengthAnimation
             {
                 From = new GridLength(300),
                 To = new GridLength(0),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
-
             Storyboard.SetTarget(columnAnimation, RightPanelColumn);
-            Storyboard.SetTargetProperty(columnAnimation,
-                new PropertyPath(ColumnDefinition.WidthProperty));
-
-            storyboard.Children.Add(windowAnimation);
+            Storyboard.SetTargetProperty(columnAnimation, new PropertyPath(ColumnDefinition.WidthProperty));
             storyboard.Children.Add(columnAnimation);
 
             storyboard.Begin();
@@ -452,7 +489,8 @@ namespace project
                     Margin = new Thickness(5),
                     Background = Brushes.Transparent,
                     CornerRadius = new CornerRadius(10),
-                    Cursor = Cursors.Hand
+                    Cursor = Cursors.Hand,
+                    Tag = i
                 };
 
                 var grid = new Grid();
@@ -492,20 +530,30 @@ namespace project
 
                 songItem.Child = grid;
 
-                // hover эффект
                 songItem.MouseEnter += (s, e) =>
                 {
-                    songItem.Background = new SolidColorBrush(Color.FromRgb(64, 64, 64));
-                    playBtn.Opacity = 1;
+                    var border = (Border)s;
+                    if ((int)border.Tag != _CurrentSong)
+                    {
+                        border.Background = new SolidColorBrush(Color.FromRgb(64, 64, 64));
+                    }
+                    ((Button)((Grid)border.Child).Children[1]).Opacity = 1;
                 };
+
                 songItem.MouseLeave += (s, e) =>
                 {
-                    songItem.Background = Brushes.Transparent;
-                    playBtn.Opacity = 0;
+                    var border = (Border)s;
+                    if ((int)border.Tag != _CurrentSong)
+                    {
+                        border.Background = Brushes.Transparent;
+                    }
+                    ((Button)((Grid)border.Child).Children[1]).Opacity = 0;
                 };
 
                 SongListPanel.Children.Add(songItem);
             }
+
+            UpdateSongListHighlight();
         }
         
     }
